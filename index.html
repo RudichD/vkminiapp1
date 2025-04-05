@@ -5,6 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Пользовательское соглашение</title>
     <link rel="stylesheet" href="style.css">
+
+    <!-- Подключаем VK Bridge -->
+    <script src="https://vk.com/js/api/openapi.js?5.199"></script>
+
+    <!-- Подключаем VK Tunnel -->
+    <script src="https://vk.com/js/tunnel.js"></script>
+
+    <!-- Стили для модального окна -->
+    <style>
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            max-width: 80%;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -16,6 +51,27 @@
         <button id="acceptBtn">Принять соглашение</button>
     </div>
 
+    <!-- Шаблон модального окна -->
+    <div class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <h2>Пользовательское соглашение</h2>
+            <div class="agreement-text">
+                <p>Текст соглашения...</p>
+            </div>
+            <button class="accept-button">Принять</button>
+        </div>
+    </div>
+
+    <!-- Ваш основной скрипт -->
     <script src="script.js"></script>
+
+    <!-- Инициализация VK API -->
+    <script>
+        VK.init({
+            apiId: 53391802,
+            onlyWidgets: false
+        });
+    </script>
 </body>
 </html>
