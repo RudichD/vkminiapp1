@@ -3,92 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Пользовательское соглашение</title>
-    <link rel="stylesheet" href="style.css">
-
-    <!-- Подключаем VK Bridge -->
-    <script src="https://vk.com/js/api/openapi.js?169" type="text/javascript"></script>
-
-    <!-- Подключаем VK Tunnel -->
-    <script src="https://vk.com/js/tunnel.js"></script>
-
-    <!-- Стили для модального окна -->
+    <title>VK Mini App</title>
     <style>
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        /* Базовые стили */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
         }
-
-        .modal-content {
-            background: white;
+        .app-container {
             padding: 20px;
-            border-radius: 5px;
-            max-width: 80%;
         }
-
-        .modal-close {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            cursor: pointer;
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+        }
+        .success {
+            display: none;
+            color: green;
+        }
+        .error {
+            display: none;
+            color: red;
         }
     </style>
-
-    <!-- Инициализация VK API -->
-    <script type="text/javascript">
-        VK.init({
-            apiId: 53391802,
-            onlyWidgets: false
-        });
-
-        VK.Observer.subscribe('webApp.Init', function (e) {
-            if (e.detail.initialized) {
-                console.log('VK API успешно инициализирован');
-
-                // Добавляем проверку статуса авторизации
-                VK.Auth.getLoginStatus(function(response) {
-                    if (response.session) {
-                        console.log('Пользователь авторизован');
-                    } else {
-                        console.log('Пользователь не авторизован');
-                    }
-                });
-            } else {
-                console.error('Ошибка инициализации VK API');
-            }
-        });
-    </script>
 </head>
 <body>
-    <div class="container">
-        <h1>Добро пожаловать!</h1>
-        <p>Пожалуйста, ознакомьтесь с пользовательским соглашением</p>
-        <div class="agreement">
-            <p>Текст соглашения...</p>
-        </div>
-        <button id="acceptBtn">Принять соглашение</button>
-    </div>
-
-    <!-- Шаблон модального окна -->
-    <div class="modal" style="display: none;">
-        <div class="modal-content">
-            <span class="modal-close">&times;</span>
-            <h2>Пользовательское соглашение</h2>
-            <div class="agreement-text">
-                <p>Текст соглашения...</p>
+    <div class="app-container">
+        <h1>Добро пожаловать в приложение</h1>
+        <div class="loading">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Загрузка...</span>
             </div>
-            <button class="accept-button">Принять</button>
         </div>
+        <div class="success">Приложение успешно инициализировано</div>
+        <div class="error">Произошла ошибка инициализации</div>
     </div>
 
-    <!-- Ваш основной скрипт -->
-    <script src="script.js"></script>
+    <!-- Подключение VK Bridge -->
+    <script src="https://vk.com/js/api/xd_connection.js?2" charset="utf-8"></script>
+
+    <script>
+        // Инициализация VK
+        VK.init({
+            apiId: 'ваш_ID_приложения'
+        });
+
+        // Обработка инициализации через промис
+        document.addEventListener('DOMContentLoaded', function() {
+            const loading = document.querySelector('.loading');
+            const success = document.querySelector('.success');
+            const error = document.querySelector('.error');
+
+            loading.style.display = 'block';
+
+            VK.bridge.send('VKWebAppInit')
+                .then(function(data) {
+                    if (data.result) {
+                        console.log('Приложение успешно инициализировано');
+                        loading.style.display = 'none';
+                        success.style.display = 'block';
+                        // Ваш код после успешной инициализации
+                    } else {
+                        console.error('Ошибка инициализации');
+                        loading.style.display = 'none';
+                        error.style.display = 'block';
+                    }
+                })
+                .catch(function(error) {
+                    console.error('Произошла ошибка:', error);
+                    loading.style.display = 'none';
+                    error.style.display = 'block';
+                    error.textContent = 'Произошла ошибка: ' + error.error_msg;
+                });
+        });
+
+        // Обработка событий инициализации
+        document.addEventListener('VKWebAppInitResult', function(event) {
+            console.log('Успешная инициализация через событие:', event.detail);
+        });
+
+        document.addEventListener('VKWebAppInitFailed', function(event) {
+            console.error('Инициализация не удалась:', event.detail);
+            const error = document.querySelector('.error');
+            error.style.display = 'block';
+            error.textContent = 'Ошибка инициализации: ' + event.detail.error_msg;
+        });
+    </script>
 </body>
 </html>
