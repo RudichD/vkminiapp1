@@ -30,6 +30,26 @@
             display: none;
             color: red;
         }
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            vertical-align: text-bottom;
+            border: 0.25em solid #f3f3f3;
+            border-right-color: #3498db;
+            border-radius: 50%;
+            animation: spinner-border 0.75s linear infinite;
+        }
+        @keyframes spinner-border {
+            to { transform: rotate(360deg); }
+        }
+        .user-info {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -42,6 +62,11 @@
         </div>
         <div class="success">Приложение успешно инициализировано</div>
         <div class="error">Произошла ошибка инициализации</div>
+        <div class="user-info">
+            <p>Имя: <span class="user-name"></span></p>
+            <p>ID: <span class="user-id"></span></p>
+            <p>Фото: <img class="user-photo" src="" alt="Аватар пользователя"></p>
+        </div>
     </div>
 
     <!-- Подключение VK Bridge -->
@@ -50,7 +75,7 @@
     <script>
         // Инициализация VK
         VK.init({
-            apiId: 'ваш_ID_приложения'
+            apiId: 'ваш_ID_приложения' // Замените на реальный ID
         });
 
         // Обработка инициализации через промис
@@ -58,6 +83,10 @@
             const loading = document.querySelector('.loading');
             const success = document.querySelector('.success');
             const error = document.querySelector('.error');
+            const userInfo = document.querySelector('.user-info');
+            const userName = document.querySelector('.user-name');
+            const userId = document.querySelector('.user-id');
+            const userPhoto = document.querySelector('.user-photo');
 
             loading.style.display = 'block';
 
@@ -67,32 +96,69 @@
                         console.log('Приложение успешно инициализировано');
                         loading.style.display = 'none';
                         success.style.display = 'block';
-                        // Ваш код после успешной инициализации
+
+                        // Получаем информацию о пользователе
+                        return VK.bridge.send('VKWebAppGetUserInfo');
                     } else {
                         console.error('Ошибка инициализации');
                         loading.style.display = 'none';
                         error.style.display = 'block';
+                        throw new Error('Инициализация не удалась');
                     }
                 })
-                .catch(function(error) {
-                    console.error('Произошла ошибка:', error);
-                    loading.style.display = 'none';
-                    error.style.display = 'block';
-                    error.textContent = 'Произошла ошибка: ' + error.error_msg;
-                });
-        });
+            .then(function(userInfoData) {
+    if (userInfoData) {
+        // Заполняем данные пользователя
+        userName.textContent = userInfoData.first_name + ' ' + userInfoData.last_name;
+        userId.textContent = userInfoData.id;
+        userPhoto.src = userInfoData.photo_100;
 
-        // Обработка событий инициализации
-        document.addEventListener('VKWebAppInitResult', function(event) {
-            console.log('Успешная инициализация через событие:', event.detail);
-        });
+        // Показываем блок с информацией о пользователе
+        userInfo.style.display = 'block';
+    } else {
+        console.warn('Данные пользователя не получены');
+    }
+})
+.catch(function(error) {
+    console.error('Произошла ошибка:', error);
+    loading.style.display = 'none';
+    error.style.display = 'block';
+    error.textContent = 'Произошла ошибка: ' + error.error_msg;
+});
 
-        document.addEventListener('VKWebAppInitFailed', function(event) {
-            console.error('Инициализация не удалась:', event.detail);
-            const error = document.querySelector('.error');
-            error.style.display = 'block';
-            error.textContent = 'Ошибка инициализации: ' + event.detail.error_msg;
-        });
-    </script>
+// Обработка событий инициализации
+document.addEventListener('VKWebAppInitResult', function(event) {
+    console.log('Успешная инициализация через событие:', event.detail);
+});
+
+document.addEventListener('VKWebAppInitFailed', function(event) {
+    console.error('Инициализация не удалась:', event.detail);
+    const error = document.querySelector('.error');
+    error.style.display = 'block';
+    error.textContent = 'Ошибка инициализации: ' + event.detail.error_msg;
+});
+
+// Функция для выхода из приложения
+function exitApp() {
+    VK.bridge.send('VKWebAppCloseApp');
+}
+
+// Обработчик кнопки выхода
+document.querySelector('.exit-button').addEventListener('click', exitApp);
+
+// Функция для отправки уведомлений
+function sendNotification() {
+    VK.bridge.send('VKWebAppShowAlert', {
+        title: 'Уведомление',
+        message: 'Это тестовое уведомление',
+        buttonTitle: 'ОК'
+    });
+}
+</script>
+
+<!-- Дополнительные элементы интерфейса -->
+<button class="exit-button">Выйти из приложения</button>
+<button class="notify-button" onclick="sendNotification()">Отправить уведомление</button>
+
 </body>
 </html>

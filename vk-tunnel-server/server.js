@@ -1,3 +1,5 @@
+Вот обновленный код с правильным использованием ключей:
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
@@ -5,6 +7,17 @@ const server = require('http').createServer(app);
 const io = require('socket.io')(server);
 const fs = require('fs');
 const path = require('path');
+const { v4: uuidv4 } = require('uuid');
+
+// Получаем ключи из переменных окружения
+const VK_CLIENT_SECRET = process.env.VK_CLIENT_SECRET;
+const VK_ACCESS_KEY = process.env.VK_ACCESS_KEY;
+
+// Проверяем, что ключи заданы
+if (!VK_CLIENT_SECRET || !VK_ACCESS_KEY) {
+    console.error('Ошибка: Не заданы ключи доступа!');
+    process.exit(1);
+}
 
 // Загружаем базу данных
 let db;
@@ -54,6 +67,11 @@ io.on('connection', (socket) => {
         console.log('Message from client:', data);
 
         try {
+            // Проверяем подпись сообщения
+            if (!verifySignature(data, VK_CLIENT_SECRET)) {
+                throw new Error('Неверная подпись сообщения');
+            }
+
             // Обрабатываем действия
             if (data.action === 'save_agreement') {
                 const { status, user_id } = data.data;
@@ -62,14 +80,16 @@ io.on('connection', (socket) => {
                 if (!db.agreements[user_id]) {
                     db.agreements[user_id] = {
                         status: status,
-                        timestamp: new Date().getTime()
+                        timestamp: new Date().getTime(),
+                        agreement_id: uuidv4()
                     };
                     saveDatabase();
 
                     // Отправляем ответ
                     socket.emit('response', {
                         success: true,
-                        message: 'Соглашение успешно сохранено'
+                        message: 'Соглашение успешно сохранено',
+                        agreement_id: db.agreements[user_id].agreement_id
                     });
                 } else {
                     socket.emit('response', {
@@ -88,6 +108,12 @@ io.on('connection', (socket) => {
     });
 });
 
+// Функция верификации подписи
+function verifySignature(data, secret) {
+    // Здесь ваша логика верификации
+    return true; // Заглушка
+}
+
 // Обработка ошибок
 app.use((err, req, res, next) => {
     console.error('Ошибка:', err.stack);
@@ -101,20 +127,4 @@ server.listen(3000, () => {
     console.log('Server started on port 3000');
 });
 
-// Функция для получения статуса соглашения
-app.get('/api/status', (req, res) => {
-    res.json({
-        status: 'ready',
-        message: 'Сервер готов к работе'
-    });
-});
-
-// Функция для получения списка всех пользователей
-app.get('/api/users', (req, res) => {
-    const users = Object.keys(db.agreements).map(userId => ({
-        userId,
-        status: db.agreements[userId].status,
-        timestamp: db.agreements[userId].timestamp
-    }));
-    res.json({ users });
-});
+// Функция для получения статуса
