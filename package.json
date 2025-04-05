@@ -4,10 +4,12 @@
   "description": "VK Mini App project",
   "main": "index.js",
   "scripts": {
-    "start": "NODE_ENV=production node index.js",
+    "start": "NODE_ENV=production node dist/index.js",
     "dev": "NODE_ENV=development nodemon index.js",
     "build": "NODE_ENV=production webpack --mode production",
-    "watch": "NODE_ENV=development webpack --mode development --watch"
+    "watch": "NODE_ENV=development webpack --mode development --watch",
+    "prestart": "npm run build",
+    "prepare": "npm run build"
   },
   "keywords": [
     "vk",
@@ -17,25 +19,25 @@
   "author": "Your Name",
   "license": "MIT",
   "dependencies": {
-    "vk-bridge": "^latest",
-    "vue": "^latest"
+    "vk-bridge": "^3.0.0",
+    "vue": "^2.6.14",
+    "webpack": "^5.75.0"
   },
   "devDependencies": {
-    "webpack": "^latest",
-    "webpack-cli": "^latest",
-    "nodemon": "^latest",
-    "vue-loader": "^latest",
-    "vue-template-compiler": "^latest"
+    "webpack-cli": "^5.0.1",
+    "nodemon": "^2.0.22",
+    "vue-loader": "^15.10.1",
+    "vue-template-compiler": "^2.6.14"
   },
   "engines": {
     "node": ">=14.0.0"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/vk-mini-app.git"
+    "url": "https://rudichd.github.io/vkminiapp1/"
   },
   "bugs": {
-    "url": "https://github.com/your-username/vk-mini-app/issues"
+    "url": "https://rudichd.github.io/vkminiapp1/issues"
   },
-  "homepage": "https://github.com/your-username/vk-mini-app#readme"
+  "homepage": "https://rudichd.github.io/vkminiapp1/#readme"
 }
