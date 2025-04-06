@@ -1,0 +1,14 @@
+{
+  "name": "Feeling Soul",
+  "description": "йцу",
+  "type": "app",
+  "app_id": 53391802,
+  "version": "1.0.0",
+  "platforms": ["web", "mobile"],
+  "start_url": "index.html",
+  "orientation": "portrait",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#5181b8"
+}

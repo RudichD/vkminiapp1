@@ -3,82 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>VK Mini App</title>
     <style>
-        /* Базовые стили */
         body {
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            color: #222222;
         }
         .app-container {
+            max-width: 600px;
+            margin: 0 auto;
             padding: 20px;
+        }
+        .status-message {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
         }
         .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
+            background-color: #f0f2f5;
         }
         .success {
-            display: none;
-            color: green;
+            background-color: #e8f5e9;
+            color: #2e7d32;
         }
         .error {
-            display: none;
-            color: red;
+            background-color: #ffebee;
+            color: #c62828;
         }
-        .spinner-border {
-            width: 3rem;
-            height: 3rem;
-            vertical-align: text-bottom;
-            border: 0.25em solid #f3f3f3;
-            border-right-color: #3498db;
+        .spinner {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto;
+            border: 4px solid rgba(0, 0, 0, 0.1);
             border-radius: 50%;
-            animation: spinner-border 0.75s linear infinite;
+            border-top-color: #5181b8;
+            animation: spin 1s ease-in-out infinite;
         }
-        @keyframes spinner-border {
+        @keyframes spin {
             to { transform: rotate(360deg); }
         }
         .user-info {
-            display: none;
             margin-top: 20px;
-            padding: 20px;
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        .user-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-top: 10px;
+        }
+        .button {
+            background-color: #5181b8;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #3a6ea5;
+        }
+        .buttons-container {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
         }
     </style>
 </head>
 <body>
     <div class="app-container">
-        <h1>Добро пожаловать в приложение</h1>
-        <div class="loading">
-            <div class="spinner-border" role="status">
-                <span class="visually-hidden">Загрузка...</span>
-            </div>
+        <h1 style="color: #5181b8; text-align: center;">Добро пожаловать</h1>
+
+        <div class="status-message loading">
+            <div class="spinner"></div>
+            <p>Загрузка приложения...</p>
         </div>
-        <div class="success">Приложение успешно инициализировано</div>
-        <div class="error">Произошла ошибка инициализации</div>
+
+        <div class="status-message success">
+            Приложение успешно инициализировано
+        </div>
+
+        <div class="status-message error">
+            Произошла ошибка инициализации
+        </div>
+
         <div class="user-info">
+            <h3>Информация о пользователе</h3>
             <p>Имя: <span class="user-name"></span></p>
             <p>ID: <span class="user-id"></span></p>
-            <p>Фото: <img class="user-photo" src="" alt="Аватар пользователя"></p>
+            <p>Фото: <br><img class="user-photo" src="" alt="Аватар"></p>
+        </div>
+
+        <div class="buttons-container">
+            <button class="button exit-button">Выйти</button>
+            <button class="button notify-button">Уведомление</button>
         </div>
     </div>
 
-    <!-- Подключение VK Bridge -->
-    <script src="https://vk.com/js/api/xd_connection.js?2" charset="utf-8"></script>
+    <!-- Подключение VK Bridge через npm пакет -->
+    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
 
     <script>
-        // Инициализация VK
-        VK.init({
-            apiId: 'ваш_ID_приложения' // Замените на реальный ID
-        });
-
-        // Обработка инициализации через промис
         document.addEventListener('DOMContentLoaded', function() {
             const loading = document.querySelector('.loading');
             const success = document.querySelector('.success');
@@ -87,78 +123,49 @@
             const userName = document.querySelector('.user-name');
             const userId = document.querySelector('.user-id');
             const userPhoto = document.querySelector('.user-photo');
+            const exitButton = document.querySelector('.exit-button');
+            const notifyButton = document.querySelector('.notify-button');
 
+            // Показываем индикатор загрузки
             loading.style.display = 'block';
 
-            VK.bridge.send('VKWebAppInit')
-                .then(function(data) {
-                    if (data.result) {
-                        console.log('Приложение успешно инициализировано');
-                        loading.style.display = 'none';
-                        success.style.display = 'block';
+            // Инициализация приложения
+            bridge.send('VKWebAppInit')
+                .then(() => {
+                    console.log('VK Mini App initialized');
+                    loading.style.display = 'none';
+                    success.style.display = 'block';
 
-                        // Получаем информацию о пользователе
-                        return VK.bridge.send('VKWebAppGetUserInfo');
-                    } else {
-                        console.error('Ошибка инициализации');
-                        loading.style.display = 'none';
-                        error.style.display = 'block';
-                        throw new Error('Инициализация не удалась');
+                    // Получаем информацию о пользователе
+                    return bridge.send('VKWebAppGetUserInfo');
+                })
+                .then(userData => {
+                    if (userData) {
+                        userName.textContent = `${userData.first_name} ${userData.last_name}`;
+                        userId.textContent = userData.id;
+                        userPhoto.src = userData.photo_200 || userData.photo_100;
+                        userInfo.style.display = 'block';
                     }
                 })
-            .then(function(userInfoData) {
-    if (userInfoData) {
-        // Заполняем данные пользователя
-        userName.textContent = userInfoData.first_name + ' ' + userInfoData.last_name;
-        userId.textContent = userInfoData.id;
-        userPhoto.src = userInfoData.photo_100;
+                .catch(err => {
+                    console.error('Error:', err);
+                    loading.style.display = 'none';
+                    error.style.display = 'block';
+                    error.textContent = `Ошибка: ${err.message || 'неизвестная ошибка'}`;
+                });
 
-        // Показываем блок с информацией о пользователе
-        userInfo.style.display = 'block';
-    } else {
-        console.warn('Данные пользователя не получены');
-    }
-})
-.catch(function(error) {
-    console.error('Произошла ошибка:', error);
-    loading.style.display = 'none';
-    error.style.display = 'block';
-    error.textContent = 'Произошла ошибка: ' + error.error_msg;
-});
+            // Обработчики кнопок
+            exitButton.addEventListener('click', () => {
+                bridge.send('VKWebAppClose', { status: 'success' });
+            });
 
-// Обработка событий инициализации
-document.addEventListener('VKWebAppInitResult', function(event) {
-    console.log('Успешная инициализация через событие:', event.detail);
-});
-
-document.addEventListener('VKWebAppInitFailed', function(event) {
-    console.error('Инициализация не удалась:', event.detail);
-    const error = document.querySelector('.error');
-    error.style.display = 'block';
-    error.textContent = 'Ошибка инициализации: ' + event.detail.error_msg;
-});
-
-// Функция для выхода из приложения
-function exitApp() {
-    VK.bridge.send('VKWebAppCloseApp');
-}
-
-// Обработчик кнопки выхода
-document.querySelector('.exit-button').addEventListener('click', exitApp);
-
-// Функция для отправки уведомлений
-function sendNotification() {
-    VK.bridge.send('VKWebAppShowAlert', {
-        title: 'Уведомление',
-        message: 'Это тестовое уведомление',
-        buttonTitle: 'ОК'
-    });
-}
-</script>
-
-<!-- Дополнительные элементы интерфейса -->
-<button class="exit-button">Выйти из приложения</button>
-<button class="notify-button" onclick="sendNotification()">Отправить уведомление</button>
-
+            notifyButton.addEventListener('click', () => {
+                bridge.send('VKWebAppShowSnackbar', {
+                    text: 'Это тестовое уведомление',
+                    type: 'info'
+                });
+            });
+        });
+    </script>
 </body>
 </html>
